@@ -126,6 +126,7 @@ public class Player extends ArenaItem {
     @Override
     public JSONObject toJSON() {
         JSONObject base = super.toJSON();
+        base.put("message", "player");
         base.put("facingRight", facingRight);
         base.put("color", color);
         base.put("health", health);

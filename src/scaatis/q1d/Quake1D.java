@@ -163,7 +163,9 @@ public class Quake1D {
                 newConnections.addAll(connections);
                 connections.clear();
             } else {
-                sendToAll(arena.toJSON().toString());
+                JSONObject object = arena.toJSON();
+                object.put("message", "gamestate");
+                sendToAll(object.toString());
             }
         }
     }

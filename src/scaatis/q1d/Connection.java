@@ -6,9 +6,18 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.json.JSONObject;
+
 public class Connection implements Runnable, Closeable {
+    public static final JSONObject        successfulHandshake = new JSONObject();
+    static {
+        successfulHandshake.put("message", "connect");
+        successfulHandshake.put("status", true);
+    }
+
     private Socket                        socket;
     private PrintWriter                   out;
     private BufferedReader                in;
@@ -24,10 +33,14 @@ public class Connection implements Runnable, Closeable {
     }
 
     @Override
-    public void close() throws IOException {
-        out.close();
-        in.close();
-        socket.close();
+    public void close() {
+        try {
+            out.close();
+            in.close();
+            socket.close();
+        } catch (IOException e) {
+            System.err.println("Connection to " + socket.getInetAddress().toString() + " could not be closed properly.");
+        }
     }
 
     @Override
@@ -35,30 +48,30 @@ public class Connection implements Runnable, Closeable {
         boolean running = true;
         String line;
         try {
+            socket.setSoTimeout(10000);
             line = in.readLine();
             player = protocol.attemptHandshake(line);
+            socket.setSoTimeout(0);
             if (player == null) {
-                running = false;
                 close();
+                return;
             }
+        } catch (SocketTimeoutException timeout) {
+            System.out.println(socket.getInetAddress().toString() + " did not send handshake.");
+            close();
+            return;
         } catch (IOException e) {
-            try {
-                close();
-            } catch (IOException e2) {
-            }
+            close();
             return;
         }
         protocol.connectNew(this);
+        send(successfulHandshake.toString());
         while (running && !socket.isClosed()) {
             try {
                 line = in.readLine();
                 queuedInput.add(line);
             } catch (IOException e) {
-                try {
-                    close();
-                } catch (IOException e2) {
-                    // shit's fucked man
-                }
+                close();
                 running = false;
             }
         }
@@ -82,11 +95,11 @@ public class Connection implements Runnable, Closeable {
     public Player getPlayer() {
         return player;
     }
-    
+
     public boolean isClosed() {
         return socket.isClosed();
     }
-    
+
     public void clearInput() {
         queuedInput.clear();
     }

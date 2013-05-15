@@ -46,8 +46,9 @@ public class Bullet extends ArenaItem {
     @Override
     public JSONObject toJSON() {
         JSONObject base = super.toJSON();
+        base.put("message", "bullet");
         base.put("facingRight", facingRight);
-        base.put("color", shooter.getColor());
+        base.put("shooter", shooter.getColor());
         return base;
     }
     
