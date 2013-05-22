@@ -62,7 +62,7 @@ Due to the compact nature of the game, the map is always transmitted in its enti
 ```json
 {"message":"bullet",
  "x":int,
- "shooter":int //color of the shooter
+ "shooter":int //color of the shooter,
  "facingRight":boolean
 }
 ```

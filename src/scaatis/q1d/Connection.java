@@ -103,4 +103,8 @@ public class Connection implements Runnable, Closeable {
     public void clearInput() {
         queuedInput.clear();
     }
+    
+    public String getAddress() {
+        return socket.getInetAddress().toString();
+    }
 }

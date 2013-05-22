@@ -1,5 +1,7 @@
 package scaatis.q1d;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -26,6 +28,7 @@ public class Quake1D {
     private double                            timeSinceLastTurn;
     private int                               turns;
     private double                            pause;
+    private QuakeControls                     controls;
 
     public Quake1D() {
         connections = new TreeSet<>(new Comparator<Connection>() {
@@ -39,6 +42,20 @@ public class Quake1D {
         timeSinceLastTurn = 0;
         turns = 0;
         pause = 0;
+        controls = new QuakeControls();
+        controls.setVisible();
+        controls.getBtnKick().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent arg0) {
+                controls.getSelected().close();
+            }
+        });
+        controls.getBtnRestartRound().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                turns = turnsPerRound - 1;
+            }
+        });
     }
 
     public Player attemptHandshake(String handshake) {
@@ -67,11 +84,11 @@ public class Quake1D {
         if (color > 0xFFFFFF || color <= 0) {
             return false;
         }
-        if (colorDistanceSq(color, bgColor) > similarityThreshold) {
+        if (colorDistanceSq(color, bgColor) < similarityThreshold) {
             return false;
         }
         for (Player player : getPlayers()) {
-            if (colorDistanceSq(color, player.getColor()) > similarityThreshold) {
+            if (colorDistanceSq(color, player.getColor()) < similarityThreshold) {
                 return false;
             }
         }
@@ -113,7 +130,7 @@ public class Quake1D {
             }
             System.out.println(conn.getPlayer().toString() + " has joined.");
             connections.add(conn);
-
+            controls.addElement(conn);
         }
 
         Iterator<Connection> iter = connections.iterator();
@@ -122,6 +139,7 @@ public class Quake1D {
             if (current.isClosed()) {
                 arena.playerLeft(current.getPlayer());
                 iter.remove();
+                controls.removeElement(current);
                 System.out.println(current.getPlayer().toString() + " has left.");
                 continue;
             }
@@ -184,9 +202,9 @@ public class Quake1D {
         object.put("players", array);
         return object;
     }
-    
+
     public void start() {
-        
+
     }
 
     public void connectNew(Connection connection) {
