@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -18,9 +21,10 @@ public class Quake1D {
 
     public static final int                   similarityThreshold = 0x100;
     public static final int                   bgColor             = 0x444444;
-    public static final int                   turnsPerSecond      = 2;
+    public static final int                   turnsPerSecond      = 1;
     public static final int                   turnsPerRound       = 100;
     public static final int                   pauseBetweenRounds  = 5;
+    public static final int                   fps                 = 20;
 
     private Collection<Connection>            connections;
     private ConcurrentLinkedQueue<Connection> newConnections;
@@ -29,6 +33,7 @@ public class Quake1D {
     private int                               turns;
     private double                            pause;
     private QuakeControls                     controls;
+    private boolean                           running;
 
     public Quake1D() {
         connections = new TreeSet<>(new Comparator<Connection>() {
@@ -38,12 +43,12 @@ public class Quake1D {
                         arg1.getPlayer().getColor());
             }
         });
+        newConnections = new ConcurrentLinkedQueue<>();
         arena = new Arena();
         timeSinceLastTurn = 0;
         turns = 0;
         pause = 0;
         controls = new QuakeControls();
-        controls.setVisible();
         controls.getBtnKick().addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent arg0) {
@@ -56,6 +61,7 @@ public class Quake1D {
                 turns = turnsPerRound - 1;
             }
         });
+        running = false;
     }
 
     public Player attemptHandshake(String handshake) {
@@ -120,6 +126,9 @@ public class Quake1D {
             pause -= delta;
             if (pause <= 0) {
                 arena = new Arena();
+                turns = 0;
+            } else {
+                return;
             }
         }
 
@@ -173,6 +182,7 @@ public class Quake1D {
             timeSinceLastTurn -= 1.0 / turnsPerSecond;
             arena.advanceTurn();
             turns++;
+            controls.getTextField().setText(turns + "/" + turnsPerRound);
             if (turns == turnsPerRound) {
                 String winners = getWinners().toString();
                 System.out.println(winners);
@@ -204,7 +214,39 @@ public class Quake1D {
     }
 
     public void start() {
+        running = true;
+        controls.setVisible();
+        QuakeServer server = new QuakeServer(this);
+        server.start();
+        while (running) {
+            try {
+                Thread.sleep(1000 / fps);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            update(1.0 / fps);
+        }
+        controls.dispose();
+        server.shutdown();
+    }
 
+    public static void main(String[] args) {
+        try {
+            for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        Quake1D q1d = new Quake1D();
+        q1d.start();
+    }
+
+    public void stop() {
+        running = false;
     }
 
     public void connectNew(Connection connection) {

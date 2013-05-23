@@ -83,3 +83,13 @@ The elements of players are sorted by score from highest to lowest and take the 
  "score":int
 }
 ```
+
+Player action
+-------------
+To take an action on your next turn, send
+
+```json
+{"message":"action",
+ "type":"MOVE/TURN/SHOOT/JUMP/IDLE"
+}
+```

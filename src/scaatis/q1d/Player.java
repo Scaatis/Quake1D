@@ -12,7 +12,6 @@ public class Player extends ArenaItem {
     private boolean         facingRight;
     private int             score;
     private int             health;
-    private boolean         alive;
 
     public Player() {
         super(null);
@@ -26,7 +25,6 @@ public class Player extends ArenaItem {
         lastAction = null;
         score = 0;
         health = maxHealth;
-        alive = false;
     }
 
     public void revive() {
@@ -50,6 +48,7 @@ public class Player extends ArenaItem {
             if (lastAction != PlayerAction.SHOOT) {
                 getLocation().add(new Bullet(this));
             }
+            break;
         case JUMP:
             if (lastAction != PlayerAction.JUMP) {
                 if (facingRight) {
@@ -111,12 +110,11 @@ public class Player extends ArenaItem {
         health -= damage;
         if (health <= 0) {
             score -= 1;
-            alive = false;
         }
     }
 
     public boolean isAlive() {
-        return alive;
+        return health > 0;
     }
 
     public boolean isObserver() {

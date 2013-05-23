@@ -27,9 +27,10 @@ public class Connection implements Runnable, Closeable {
 
     public Connection(Socket socket, Quake1D protocol) throws IOException {
         this.socket = socket;
-        out = new PrintWriter(socket.getOutputStream());
+        out = new PrintWriter(socket.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         this.protocol = protocol;
+        queuedInput = new ConcurrentLinkedQueue<>();
     }
 
     @Override
@@ -54,6 +55,7 @@ public class Connection implements Runnable, Closeable {
             socket.setSoTimeout(0);
             if (player == null) {
                 close();
+                System.out.println("Received invalid handshake from " + socket.getInetAddress().toString());
                 return;
             }
         } catch (SocketTimeoutException timeout) {
@@ -69,6 +71,10 @@ public class Connection implements Runnable, Closeable {
         while (running && !socket.isClosed()) {
             try {
                 line = in.readLine();
+                if(line == null) {
+                    close();
+                    break;
+                }
                 queuedInput.add(line);
             } catch (IOException e) {
                 close();

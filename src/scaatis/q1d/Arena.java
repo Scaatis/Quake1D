@@ -80,6 +80,7 @@ public class Arena implements JSONAble {
 
     public void newPlayer(Player player) {
         setWidth(width + sizePerPlayer);
+        players.add(player);
         player.setScore(0);
         respawn(player);
     }
@@ -121,9 +122,10 @@ public class Arena implements JSONAble {
 
     private void respawn(Player player) {
         int x = (spawningLeft ? 0 : width - 1) - offset;
-        spawningLeft = !spawningLeft;
+        player.setFacingRight(spawningLeft);
         player.setLocation(new Location(x));
         player.revive();
+        spawningLeft = !spawningLeft;
     }
 
     private void collisions() {

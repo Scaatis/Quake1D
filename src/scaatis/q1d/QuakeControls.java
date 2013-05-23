@@ -17,6 +17,7 @@ import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.border.TitledBorder;
+import javax.swing.JTextField;
 
 public class QuakeControls {
 
@@ -25,6 +26,8 @@ public class QuakeControls {
     private JList<Connection> list;
     private JButton btnKick;
     private JButton btnRestartRound;
+    private JTextField textField;
+    private JLabel lblCurrentTurn;
     
     /**
      * Launch the application.
@@ -53,7 +56,7 @@ public class QuakeControls {
      * Initialize the contents of the frame.
      */
     private void initialize() {
-        frame = new JFrame();
+        frame = new JFrame("Quake 1D Server");
         frame.setBounds(100, 100, 450, 300);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
@@ -84,6 +87,14 @@ public class QuakeControls {
         btnRestartRound.setMnemonic('r');
         panel_1.add(btnRestartRound);
         
+        lblCurrentTurn = new JLabel("Current Turn:");
+        panel_1.add(lblCurrentTurn);
+        
+        textField = new JTextField();
+        textField.setEditable(false);
+        panel_1.add(textField);
+        textField.setColumns(10);
+        
     }
 
     private class PlayerRenderer extends JLabel implements ListCellRenderer<Connection> {
@@ -101,15 +112,13 @@ public class QuakeControls {
                 Connection connection, int index, boolean isSelected, boolean cellHasFocus) {
             
             if (isSelected) {
-                setBackground(list.getSelectionBackground());
-                setForeground(list.getSelectionForeground());
+                setText("> " + connection.getAddress());
             } else {
-                setBackground(list.getBackground());
-                setForeground(list.getForeground());
+                setText(connection.getAddress());
             }
             
-            setForeground(new Color(connection.getPlayer().getColor()));
-            setText(connection.getAddress());
+            setForeground(Color.black);
+            setBackground(new Color(connection.getPlayer().getColor()));
             setFont(list.getFont());
             return this;
         }
@@ -127,6 +136,10 @@ public class QuakeControls {
         model.removeElement(elem);
     }
     
+    public void dispose() {
+        frame.dispose();
+    }
+    
     public JButton getBtnKick() {
         return btnKick;
     }
@@ -137,5 +150,8 @@ public class QuakeControls {
     
     public Connection getSelected() {
         return list.getSelectedValue();
+    }
+    public JTextField getTextField() {
+        return textField;
     }
 }

@@ -18,7 +18,7 @@ public class QuakeServer extends Thread {
     }
     
     @Override
-    public void start() {
+    public void run() {
         while(!socket.isClosed()) {
             try {
                 Socket connection = socket.accept();
